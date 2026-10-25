@@ -97,8 +97,8 @@ You don't need to install Gradle. The `./gradlew` wrapper downloads Gradle 8.14.
 > **Java version note:** the build needs **JDK 21**. Gradle 8.14 can't run on newer JDKs; on Java 26 it fails with *"Unsupported class file major version 70"*. You can keep newer JDKs installed, but point `JAVA_HOME` at 21 when you build.
 >
 > ```bash
-> # macOS (Homebrew)
-> brew install openjdk@21
+> # macOS (Homebrew): the Temurin cask installs where macOS's java_home can find it
+> brew install --cask temurin@21
 > export JAVA_HOME=$(/usr/libexec/java_home -v 21)   # add to ~/.zshrc to make it permanent
 >
 > # Linux (Debian/Ubuntu)
@@ -138,9 +138,14 @@ You'll see the OpenAPI 3.1 result, the fixes that were applied, the findings and
 ### 4. Try the CLI
 
 ```bash
-./gradlew :go:goBuild
-go/build/speclint modernize testdata/weather/weather-service.wsdl -o /tmp/weather.yaml --report /tmp/report.md
+# With Java (no Go needed)
+./gradlew :java:installDist
+java/build/install/speclint/bin/speclint modernize testdata/weather/weather-service.wsdl \
+  -o /tmp/weather.yaml --report /tmp/report.md
 cat /tmp/report.md
+
+# Or with Go
+./gradlew :go:goBuild && go/build/speclint modernize testdata/weather/weather-service.wsdl -o /tmp/weather.yaml
 ```
 
 ---
@@ -574,7 +579,7 @@ Contributions are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) explains:
 - how to keep the three implementations in sync
 - the commit style
 
-Run `pre-commit install` once so that gitleaks, ruff and gofmt run before every commit.
+Run `pip install pre-commit && pre-commit install` once so that gitleaks, ruff and basic file checks (YAML/JSON syntax, private keys, merge conflicts) run before every commit.
 
 ### Roadmap
 
