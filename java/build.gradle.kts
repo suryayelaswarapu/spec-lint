@@ -21,7 +21,7 @@ dependencies {
     implementation("info.picocli:picocli:4.7.6")
     implementation("org.yaml:snakeyaml:2.3")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
-    implementation("com.networknt:json-schema-validator:1.5.6")
+    implementation("com.networknt:json-schema-validator:3.0.8")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
