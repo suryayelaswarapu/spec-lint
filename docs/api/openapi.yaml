@@ -1,0 +1,397 @@
+openapi: 3.1.0
+info:
+  title: spec-lint API
+  version: 0.1.0
+  summary: Modernize legacy API contracts over HTTP.
+  description: |
+    Convert WSDL 1.1, Swagger 2.0 and OpenAPI 3.0 to OpenAPI 3.1, apply wire-safe
+    auto-fixes and lint against the shared spec-lint ruleset. The same API is served by
+    the Python (FastAPI), Java (Spring Boot) and Go (net/http) implementations.
+
+    The service never fetches remote references and never reads the server's file
+    system: local XSD imports are disabled. Request bodies are size-limited. When the
+    server is started with `SPECLINT_API_TOKEN`, every `/api/v1` call except
+    `GET /api/v1/rules` requires `Authorization: Bearer <token>`.
+  contact:
+    name: spec-lint maintainers
+    url: https://github.com/suryayelaswarapu/spec-lint
+  license:
+    name: MIT
+    identifier: MIT
+servers:
+  - url: http://localhost:8080
+    description: Local development
+security:
+  - {}
+  - bearerAuth: []
+tags:
+  - name: specs
+    description: Convert, fix, lint and modernize API contracts
+  - name: meta
+    description: Service metadata
+paths:
+  /api/v1/modernize:
+    post:
+      tags: [specs]
+      summary: Convert, auto-fix and lint in one step
+      operationId: modernizeSpec
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModernizeRequest'
+      responses:
+        '200':
+          description: The modernized OpenAPI 3.1 document, applied fixes, findings and report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModernizeResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '422':
+          $ref: '#/components/responses/UnsafeInput'
+  /api/v1/convert:
+    post:
+      tags: [specs]
+      summary: Convert to OpenAPI 3.1 without fixing or linting
+      operationId: convertSpec
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpecRequest'
+      responses:
+        '200':
+          description: The converted document
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConvertResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '422':
+          $ref: '#/components/responses/UnsafeInput'
+  /api/v1/lint:
+    post:
+      tags: [specs]
+      summary: Lint an OpenAPI 3.x document
+      operationId: lintSpec
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LintRequest'
+      responses:
+        '200':
+          description: Lint findings; line numbers refer to the submitted text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LintResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '422':
+          $ref: '#/components/responses/UnsafeInput'
+  /api/v1/fix:
+    post:
+      tags: [specs]
+      summary: Apply wire-safe auto-fixes to an OpenAPI 3.x document
+      operationId: fixSpec
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LintRequest'
+      responses:
+        '200':
+          description: The fixed document and the fixes applied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FixResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '422':
+          $ref: '#/components/responses/UnsafeInput'
+  /api/v1/rules:
+    get:
+      tags: [meta]
+      summary: List the lint rules
+      operationId: listRules
+      security: []
+      responses:
+        '200':
+          description: All rules with their default severity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RulesResponse'
+        default:
+          $ref: '#/components/responses/Error'
+  /health:
+    get:
+      tags: [meta]
+      summary: Liveness check
+      operationId: getHealth
+      security: []
+      responses:
+        '200':
+          description: The service is up
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+        default:
+          $ref: '#/components/responses/Error'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Required only when the server sets SPECLINT_API_TOKEN.
+  schemas:
+    SpecRequest:
+      type: object
+      required: [spec]
+      properties:
+        spec:
+          type: string
+          description: The contract text (WSDL XML, or Swagger/OpenAPI as YAML or JSON).
+          minLength: 1
+        filename:
+          type: string
+          description: Optional original file name, used only in messages.
+          maxLength: 200
+    LintRequest:
+      allOf:
+        - $ref: '#/components/schemas/SpecRequest'
+        - type: object
+          properties:
+            config:
+              $ref: '#/components/schemas/LintConfig'
+    ModernizeRequest:
+      allOf:
+        - $ref: '#/components/schemas/LintRequest'
+        - type: object
+          properties:
+            fix:
+              type: boolean
+              default: true
+              description: Apply auto-fixes before linting.
+    LintConfig:
+      type: object
+      description: Same shape as .speclint.yaml.
+      properties:
+        extends:
+          type: string
+          enum: [recommended, strict]
+        rules:
+          type: object
+          description: Rule id to severity override.
+          additionalProperties:
+            type: string
+            enum: [error, warning, info, 'off']
+    Finding:
+      type: object
+      required: [rule, severity, message, path]
+      properties:
+        rule:
+          type: string
+        severity:
+          type: string
+          enum: [error, warning, info]
+        message:
+          type: string
+        path:
+          type: string
+          description: JSON Pointer to the offending node.
+        line:
+          type: integer
+          minimum: 1
+    AppliedFix:
+      type: object
+      required: [rule, message, path]
+      properties:
+        rule:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+    Summary:
+      type: object
+      required: [error, warning, info]
+      properties:
+        error:
+          type: integer
+        warning:
+          type: integer
+        info:
+          type: integer
+    ConvertResponse:
+      type: object
+      required: [sourceKind, openapi, yaml, warnings]
+      properties:
+        sourceKind:
+          type: string
+          enum: [wsdl-1.1, swagger-2.0, openapi-3.0, openapi-3.1]
+        openapi:
+          type: object
+          description: The OpenAPI 3.1 document.
+        yaml:
+          type: string
+          description: The same document serialized as YAML.
+        warnings:
+          type: array
+          items:
+            type: string
+    FixResponse:
+      type: object
+      required: [openapi, yaml, fixes]
+      properties:
+        openapi:
+          type: object
+        yaml:
+          type: string
+        fixes:
+          type: array
+          items:
+            $ref: '#/components/schemas/AppliedFix'
+    LintResponse:
+      type: object
+      required: [summary, findings]
+      properties:
+        summary:
+          $ref: '#/components/schemas/Summary'
+        findings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Finding'
+    ModernizeResponse:
+      type: object
+      required: [sourceKind, openapi, yaml, warnings, fixes, summary, findings, report]
+      properties:
+        sourceKind:
+          type: string
+          enum: [wsdl-1.1, swagger-2.0, openapi-3.0, openapi-3.1]
+        openapi:
+          type: object
+        yaml:
+          type: string
+          description: The modernized document as YAML; finding line numbers refer to it.
+        warnings:
+          type: array
+          items:
+            type: string
+        fixes:
+          type: array
+          items:
+            $ref: '#/components/schemas/AppliedFix'
+        summary:
+          $ref: '#/components/schemas/Summary'
+        findings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Finding'
+        report:
+          type: string
+          description: Markdown migration report.
+    Rule:
+      type: object
+      required: [id, severity, fixable, description]
+      properties:
+        id:
+          type: string
+        severity:
+          type: string
+          enum: [error, warning, info]
+        fixable:
+          type: boolean
+        description:
+          type: string
+    RulesResponse:
+      type: object
+      required: [rules]
+      properties:
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rule'
+    Health:
+      type: object
+      required: [status, version, implementation]
+      properties:
+        status:
+          type: string
+          enum: [UP]
+        version:
+          type: string
+        implementation:
+          type: string
+          enum: [python, java, go]
+    Problem:
+      type: object
+      description: RFC 9457 Problem Details.
+      required: [title, status]
+      properties:
+        type:
+          type: string
+          format: uri-reference
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+  responses:
+    BadRequest:
+      description: The input could not be parsed or is not a supported format
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Unauthorized:
+      description: A bearer token is required and was missing or wrong
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    PayloadTooLarge:
+      description: The request body exceeds the configured limit
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    UnsafeInput:
+      description: The input was rejected for security reasons (DTDs, alias bombs, path traversal)
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Error:
+      description: Unexpected error
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'

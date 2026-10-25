@@ -1,0 +1,189 @@
+# Fictional Swagger 2.0 weather API with typical legacy problems, used to demo
+# `speclint modernize`. example.com is reserved for documentation (RFC 2606).
+swagger: "2.0"
+info:
+  title: Weather API
+  version: "2.3"
+host: api.example.com
+basePath: /v2
+schemes: [https, http]
+consumes: [application/json]
+produces: [application/json]
+securityDefinitions:
+  api_key:
+    type: apiKey
+    in: header
+    name: X-API-Key
+  oauth:
+    type: oauth2
+    flow: accessCode
+    authorizationUrl: https://auth.example.com/authorize
+    tokenUrl: https://auth.example.com/token
+    scopes:
+      alerts:write: Manage weather alert subscriptions
+security:
+  - api_key: []
+tags:
+  - name: forecast
+    description: Forecast lookups
+parameters:
+  Units:
+    name: units
+    in: query
+    type: string
+    enum: [metric, imperial]
+    default: metric
+responses:
+  NotFound:
+    description: Location not found
+    schema:
+      $ref: "#/definitions/Error"
+paths:
+  /Current_Conditions/{city}:
+    get:
+      tags: [forecast]
+      summary: Current conditions for a city
+      parameters:
+        - name: city
+          in: path
+          required: true
+          type: string
+        - $ref: "#/parameters/Units"
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/conditions"
+          examples:
+            application/json:
+              temperature_c: 21.5
+              summary: Sunny
+        "404":
+          $ref: "#/responses/NotFound"
+  /forecast/:
+    get:
+      operationId: GetForecast
+      tags: [forecast]
+      summary: Daily forecast
+      parameters:
+        - name: lat
+          in: query
+          required: true
+          type: number
+          minimum: -90
+          maximum: 90
+        - name: lon
+          in: query
+          required: true
+          type: number
+          minimum: -180
+          maximum: 180
+        - name: days
+          in: query
+          type: integer
+          minimum: 1
+          maximum: 10
+          exclusiveMaximum: false
+        - name: fields
+          in: query
+          type: array
+          items:
+            type: string
+          collectionFormat: csv
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+            properties:
+              days:
+                type: array
+                items:
+                  $ref: "#/definitions/ForecastDay"
+  /alerts/subscriptions:
+    post:
+      operationId: create_alert_subscription
+      summary: Subscribe to severe weather alerts
+      security:
+        - oauth: [alerts:write]
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required: [callbackUrl, area]
+            properties:
+              callbackUrl:
+                type: string
+                format: uri
+              area:
+                type: string
+                example: CO
+      responses:
+        "201":
+          description: Created
+          headers:
+            Location:
+              type: string
+              description: URL of the new subscription
+  /stations/{stationId}/photo:
+    put:
+      operationId: uploadStationPhoto
+      tags: [stations]
+      consumes: [multipart/form-data]
+      parameters:
+        - name: stationId
+          in: path
+          required: true
+          type: string
+        - name: photo
+          in: formData
+          type: file
+          required: true
+        - name: caption
+          in: formData
+          type: string
+      responses:
+        "204":
+          description: Uploaded
+definitions:
+  conditions:
+    type: object
+    required: [temperature_c]
+    properties:
+      temperature_c:
+        type: number
+        format: double
+      summary:
+        type: string
+        x-nullable: true
+      observed_at:
+        type: string
+        format: date-time
+  ForecastDay:
+    type: object
+    properties:
+      date:
+        type: string
+        format: date
+      high:
+        type: number
+      low:
+        type: number
+      precipitationChance:
+        type: integer
+        minimum: 0
+        maximum: 100
+  Error:
+    type: object
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+  LegacyStation:
+    type: object
+    properties:
+      id:
+        type: string

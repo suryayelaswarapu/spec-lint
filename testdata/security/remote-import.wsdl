@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!-- Remote schema import: must never be fetched (SSRF), only reported. -->
+<definitions xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="urn:t"
+    targetNamespace="urn:t" name="RemoteImport">
+  <types>
+    <xs:schema targetNamespace="urn:t">
+      <xs:import namespace="urn:x" schemaLocation="http://169.254.169.254/latest/meta-data"/>
+      <xs:element name="Ping"><xs:complexType><xs:sequence/></xs:complexType></xs:element>
+    </xs:schema>
+  </types>
+  <message name="PingIn"><part name="p" element="tns:Ping"/></message>
+  <portType name="P"><operation name="Ping"><input message="tns:PingIn"/></operation></portType>
+</definitions>

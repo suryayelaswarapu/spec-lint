@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<!-- Schema import that tries to escape the input directory: must be rejected. -->
+<definitions xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="urn:t" name="Traversal">
+  <types>
+    <xs:schema targetNamespace="urn:t">
+      <xs:import namespace="urn:x" schemaLocation="../../outside.xsd"/>
+    </xs:schema>
+  </types>
+</definitions>

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Legacy rpc/encoded weather service, modelled on the style of older government forecast
+  services such as the NOAA NDFD SOAP API (simple-typed RPC parts, soapenc arrays).
+  Written for spec-lint's tests; it is not a copy of any real WSDL.
+-->
+<definitions name="LegacyForecast"
+    targetNamespace="urn:example:legacy-forecast"
+    xmlns="http://schemas.xmlsoap.org/wsdl/"
+    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+    xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"
+    xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:tns="urn:example:legacy-forecast">
+
+  <types>
+    <xsd:schema targetNamespace="urn:example:legacy-forecast">
+      <xsd:simpleType name="productType">
+        <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="time-series"/>
+          <xsd:enumeration value="glance"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:simpleType name="formatType">
+        <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="24 hourly"/>
+          <xsd:enumeration value="12 hourly"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:complexType name="weatherParametersType">
+        <xsd:all>
+          <xsd:element name="maxt" type="xsd:boolean"/>
+          <xsd:element name="mint" type="xsd:boolean"/>
+          <xsd:element name="temp" type="xsd:boolean"/>
+          <xsd:element name="pop12" type="xsd:boolean"/>
+          <xsd:element name="wspd" type="xsd:boolean"/>
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="ArrayOfString">
+        <xsd:complexContent>
+          <xsd:restriction base="soapenc:Array">
+            <xsd:attribute ref="soapenc:arrayType" wsdl:arrayType="xsd:string[]"/>
+          </xsd:restriction>
+        </xsd:complexContent>
+      </xsd:complexType>
+    </xsd:schema>
+  </types>
+
+  <message name="GetForecastByPointRequest">
+    <part name="latitude" type="xsd:decimal"/>
+    <part name="longitude" type="xsd:decimal"/>
+    <part name="product" type="tns:productType"/>
+    <part name="startTime" type="xsd:dateTime"/>
+    <part name="endTime" type="xsd:dateTime"/>
+    <part name="weatherParameters" type="tns:weatherParametersType"/>
+  </message>
+  <message name="GetForecastByPointResponse">
+    <part name="dwmlOut" type="xsd:string"/>
+  </message>
+  <message name="GetForecastByDayRequest">
+    <part name="latitude" type="xsd:decimal"/>
+    <part name="longitude" type="xsd:decimal"/>
+    <part name="startDate" type="xsd:date"/>
+    <part name="numDays" type="xsd:integer"/>
+    <part name="format" type="tns:formatType"/>
+  </message>
+  <message name="GetForecastByDayResponse">
+    <part name="dwmlByDayOut" type="xsd:string"/>
+  </message>
+  <message name="ListStationsRequest">
+    <part name="stateCode" type="xsd:string"/>
+  </message>
+  <message name="ListStationsResponse">
+    <part name="stations" type="tns:ArrayOfString"/>
+  </message>
+
+  <portType name="LegacyForecastPortType">
+    <operation name="GetForecastByPoint">
+      <documentation>Returns a forecast document (as an XML string) for one point.</documentation>
+      <input message="tns:GetForecastByPointRequest"/>
+      <output message="tns:GetForecastByPointResponse"/>
+    </operation>
+    <operation name="GetForecastByDay">
+      <input message="tns:GetForecastByDayRequest"/>
+      <output message="tns:GetForecastByDayResponse"/>
+    </operation>
+    <operation name="ListStations">
+      <input message="tns:ListStationsRequest"/>
+      <output message="tns:ListStationsResponse"/>
+    </operation>
+  </portType>
+
+  <binding name="LegacyForecastBinding" type="tns:LegacyForecastPortType">
+    <soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <operation name="GetForecastByPoint">
+      <soap:operation soapAction="urn:example:legacy-forecast#GetForecastByPoint" style="rpc"/>
+      <input><soap:body use="encoded" namespace="urn:example:legacy-forecast" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/></input>
+      <output><soap:body use="encoded" namespace="urn:example:legacy-forecast" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/></output>
+    </operation>
+    <operation name="GetForecastByDay">
+      <soap:operation soapAction="urn:example:legacy-forecast#GetForecastByDay" style="rpc"/>
+      <input><soap:body use="encoded" namespace="urn:example:legacy-forecast" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/></input>
+      <output><soap:body use="encoded" namespace="urn:example:legacy-forecast" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/></output>
+    </operation>
+    <operation name="ListStations">
+      <soap:operation soapAction="urn:example:legacy-forecast#ListStations" style="rpc"/>
+      <input><soap:body use="encoded" namespace="urn:example:legacy-forecast" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/></input>
+      <output><soap:body use="encoded" namespace="urn:example:legacy-forecast" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/></output>
+    </operation>
+  </binding>
+
+  <service name="LegacyForecastService">
+    <documentation>Legacy point and daily forecast service.</documentation>
+    <port name="LegacyForecastPort" binding="tns:LegacyForecastBinding">
+      <soap:address location="http://legacy.example.com/forecast/server.php"/>
+    </port>
+  </service>
+</definitions>
