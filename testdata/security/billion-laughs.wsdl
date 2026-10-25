@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<!-- Entity-expansion bomb: must be rejected before expansion. -->
+<!DOCTYPE lolz [
+  <!ENTITY lol "lol">
+  <!ENTITY lol2 "&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;">
+  <!ENTITY lol3 "&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;">
+]>
+<definitions xmlns="http://schemas.xmlsoap.org/wsdl/" name="&lol3;"/>

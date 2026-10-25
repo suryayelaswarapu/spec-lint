@@ -1,0 +1,63 @@
+# OpenAPI 3.0 document, used to test the 3.0 -> 3.1 upgrade.
+openapi: 3.0.3
+info:
+  title: Weather Alerts API
+  version: 1.4.0
+  description: Active severe-weather alerts.
+  contact: {name: API Team, url: https://example.com/support}
+  license: {name: MIT, url: https://opensource.org/license/mit}
+servers:
+  - url: https://alerts.example.com/v1
+security:
+  - bearerAuth: []
+tags:
+  - name: alerts
+    description: Severe weather alerts
+paths:
+  /alerts/{alertId}:
+    get:
+      tags: [alerts]
+      summary: Get one alert
+      operationId: getAlert
+      parameters:
+        - name: alertId
+          in: path
+          required: true
+          description: Alert identifier
+          schema: {type: string}
+      responses:
+        '200':
+          description: The alert
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Alert'}
+        '404':
+          description: Not found
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+components:
+  securitySchemes:
+    bearerAuth: {type: http, scheme: bearer, bearerFormat: JWT}
+  schemas:
+    Alert:
+      type: object
+      required: [alertId, severity]
+      properties:
+        alertId: {type: string}
+        severity:
+          type: string
+          enum: [minor, moderate, severe, extreme]
+        headline:
+          type: string
+          nullable: true
+          example: Winter storm warning
+        windGustMph:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+    Problem:
+      type: object
+      properties:
+        title: {type: string}
+        status: {type: integer}

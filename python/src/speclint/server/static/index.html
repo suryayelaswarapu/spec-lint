@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>spec-lint</title>
+  <meta name="description" content="Modernize WSDL and Swagger 2.0 contracts into linted OpenAPI 3.1.">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">{ }</span>
+      <div>
+        <h1>spec-lint</h1>
+        <p class="tagline">WSDL &amp; Swagger 2.0 &rarr; linted OpenAPI 3.1</p>
+      </div>
+    </div>
+    <nav class="links">
+      <span id="impl" class="badge" title="Implementation serving this page">connecting&hellip;</span>
+      <a href="/docs.html">API docs</a>
+      <a href="https://github.com/suryayelaswarapu/spec-lint" rel="noopener">GitHub</a>
+    </nav>
+  </header>
+
+  <main class="layout">
+    <section class="panel" aria-labelledby="input-title">
+      <div class="panel-head">
+        <h2 id="input-title">1. Your contract</h2>
+        <div class="samples">
+          <span>Try:</span>
+          <button type="button" class="link" data-sample="wsdl">SOAP WSDL</button>
+          <button type="button" class="link" data-sample="swagger">Swagger 2.0</button>
+          <button type="button" class="link" data-sample="openapi">OpenAPI 3.0</button>
+        </div>
+      </div>
+      <label class="drop" id="drop">
+        <input type="file" id="file" accept=".wsdl,.xml,.yaml,.yml,.json">
+        <span>Drop a file here or <u>browse</u> (.wsdl, .yaml, .json &middot; max 2 MB)</span>
+      </label>
+      <textarea id="spec" spellcheck="false" placeholder="&hellip;or paste WSDL / Swagger / OpenAPI here"></textarea>
+      <div class="options">
+        <label><input type="checkbox" id="fix" checked> Apply safe auto-fixes</label>
+        <label>Profile
+          <select id="profile">
+            <option value="recommended">recommended</option>
+            <option value="strict">strict</option>
+          </select>
+        </label>
+        <details class="token">
+          <summary>API token</summary>
+          <input type="password" id="token" autocomplete="off" placeholder="Only if the server requires one">
+        </details>
+      </div>
+      <div class="actions">
+        <button type="button" class="primary" data-action="modernize">Modernize</button>
+        <button type="button" data-action="convert">Convert only</button>
+        <button type="button" data-action="lint">Lint OpenAPI 3.x</button>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="result-title" aria-live="polite">
+      <div class="panel-head">
+        <h2 id="result-title">2. Result</h2>
+        <span id="kind" class="muted"></span>
+      </div>
+      <div id="error" class="error" hidden></div>
+      <div id="empty" class="empty">Run an action to see the OpenAPI 3.1 output, findings and the migration report.</div>
+      <div id="result" hidden>
+        <div class="stats">
+          <div class="stat err"><b id="n-error">0</b><span>errors</span></div>
+          <div class="stat warn"><b id="n-warning">0</b><span>warnings</span></div>
+          <div class="stat info"><b id="n-info">0</b><span>info</span></div>
+          <div class="stat fix"><b id="n-fixes">0</b><span>auto-fixes</span></div>
+          <div class="stat note"><b id="n-notes">0</b><span>notes</span></div>
+        </div>
+        <div class="tabs" role="tablist">
+          <button type="button" role="tab" data-tab="openapi" aria-selected="true">OpenAPI 3.1</button>
+          <button type="button" role="tab" data-tab="findings">Findings</button>
+          <button type="button" role="tab" data-tab="fixes">Fixes</button>
+          <button type="button" role="tab" data-tab="notes">Notes</button>
+          <button type="button" role="tab" data-tab="report">Report</button>
+        </div>
+        <div class="tab" data-pane="openapi">
+          <div class="toolbar">
+            <button type="button" id="copy">Copy</button>
+            <button type="button" id="download">Download .yaml</button>
+          </div>
+          <pre id="yaml" class="code"></pre>
+        </div>
+        <div class="tab" data-pane="findings" hidden>
+          <table><thead><tr><th>Severity</th><th>Rule</th><th>Line</th><th>Message</th></tr></thead><tbody id="findings"></tbody></table>
+        </div>
+        <div class="tab" data-pane="fixes" hidden>
+          <table><thead><tr><th>Rule</th><th>Change</th></tr></thead><tbody id="fixes"></tbody></table>
+        </div>
+        <div class="tab" data-pane="notes" hidden><ul id="notes" class="notes"></ul></div>
+        <div class="tab" data-pane="report" hidden><pre id="report" class="code"></pre></div>
+      </div>
+    </section>
+  </main>
+  <footer class="footer">Nothing you paste is stored. The service never fetches remote references.</footer>
+</body>
+</html>

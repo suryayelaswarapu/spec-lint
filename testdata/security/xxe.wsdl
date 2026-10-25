@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<!-- XXE probe: must be rejected, never resolved. -->
+<!DOCTYPE definitions [ <!ENTITY xxe SYSTEM "file:///etc/hostname"> ]>
+<definitions xmlns="http://schemas.xmlsoap.org/wsdl/" name="&xxe;"/>

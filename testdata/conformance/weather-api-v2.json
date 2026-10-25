@@ -1,0 +1,797 @@
+{
+  "input": "weather/weather-api-v2.yaml",
+  "sourceKind": "swagger-2.0",
+  "warnings": 0,
+  "converted": {
+    "openapi": "3.1.0",
+    "info": {
+      "title": "Weather API",
+      "version": "2.3"
+    },
+    "servers": [
+      {
+        "url": "https://api.example.com/v2"
+      },
+      {
+        "url": "http://api.example.com/v2"
+      }
+    ],
+    "security": [
+      {
+        "api_key": []
+      }
+    ],
+    "tags": [
+      {
+        "name": "forecast",
+        "description": "Forecast lookups"
+      }
+    ],
+    "paths": {
+      "/Current_Conditions/{city}": {
+        "get": {
+          "tags": [
+            "forecast"
+          ],
+          "summary": "Current conditions for a city",
+          "parameters": [
+            {
+              "name": "city",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "$ref": "#/components/parameters/Units"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/conditions"
+                  },
+                  "example": {
+                    "temperature_c": 21.5,
+                    "summary": "Sunny"
+                  }
+                }
+              }
+            },
+            "404": {
+              "$ref": "#/components/responses/NotFound"
+            }
+          }
+        }
+      },
+      "/forecast/": {
+        "get": {
+          "tags": [
+            "forecast"
+          ],
+          "summary": "Daily forecast",
+          "operationId": "GetForecast",
+          "parameters": [
+            {
+              "name": "lat",
+              "in": "query",
+              "required": true,
+              "schema": {
+                "type": "number",
+                "maximum": 90,
+                "minimum": -90
+              }
+            },
+            {
+              "name": "lon",
+              "in": "query",
+              "required": true,
+              "schema": {
+                "type": "number",
+                "maximum": 180,
+                "minimum": -180
+              }
+            },
+            {
+              "name": "days",
+              "in": "query",
+              "schema": {
+                "type": "integer",
+                "maximum": 10,
+                "minimum": 1
+              }
+            },
+            {
+              "name": "fields",
+              "in": "query",
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "style": "form",
+              "explode": false
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "days": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/ForecastDay"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/alerts/subscriptions": {
+        "post": {
+          "summary": "Subscribe to severe weather alerts",
+          "operationId": "create_alert_subscription",
+          "security": [
+            {
+              "oauth": [
+                "alerts:write"
+              ]
+            }
+          ],
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "callbackUrl",
+                    "area"
+                  ],
+                  "properties": {
+                    "callbackUrl": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "area": {
+                      "type": "string",
+                      "examples": [
+                        "CO"
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "required": true
+          },
+          "responses": {
+            "201": {
+              "description": "Created",
+              "headers": {
+                "Location": {
+                  "description": "URL of the new subscription",
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/stations/{stationId}/photo": {
+        "put": {
+          "tags": [
+            "stations"
+          ],
+          "operationId": "uploadStationPhoto",
+          "parameters": [
+            {
+              "name": "stationId",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "content": {
+              "multipart/form-data": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "photo": {
+                      "type": "string",
+                      "format": "binary"
+                    },
+                    "caption": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "photo"
+                  ]
+                }
+              }
+            },
+            "required": true
+          },
+          "responses": {
+            "204": {
+              "description": "Uploaded"
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "conditions": {
+          "type": "object",
+          "required": [
+            "temperature_c"
+          ],
+          "properties": {
+            "temperature_c": {
+              "type": "number",
+              "format": "double"
+            },
+            "summary": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "observed_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "ForecastDay": {
+          "type": "object",
+          "properties": {
+            "date": {
+              "type": "string",
+              "format": "date"
+            },
+            "high": {
+              "type": "number"
+            },
+            "low": {
+              "type": "number"
+            },
+            "precipitationChance": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            }
+          }
+        },
+        "Error": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "integer"
+            },
+            "message": {
+              "type": "string"
+            }
+          }
+        },
+        "LegacyStation": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "parameters": {
+        "Units": {
+          "name": "units",
+          "in": "query",
+          "schema": {
+            "type": "string",
+            "enum": [
+              "metric",
+              "imperial"
+            ],
+            "default": "metric"
+          }
+        }
+      },
+      "responses": {
+        "NotFound": {
+          "description": "Location not found",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Error"
+              }
+            }
+          }
+        }
+      },
+      "securitySchemes": {
+        "api_key": {
+          "type": "apiKey",
+          "name": "X-API-Key",
+          "in": "header"
+        },
+        "oauth": {
+          "type": "oauth2",
+          "flows": {
+            "authorizationCode": {
+              "scopes": {
+                "alerts:write": "Manage weather alert subscriptions"
+              },
+              "authorizationUrl": "https://auth.example.com/authorize",
+              "tokenUrl": "https://auth.example.com/token"
+            }
+          }
+        }
+      }
+    }
+  },
+  "modernized": {
+    "openapi": "3.1.0",
+    "info": {
+      "title": "Weather API",
+      "version": "2.3"
+    },
+    "servers": [
+      {
+        "url": "https://api.example.com/v2"
+      },
+      {
+        "url": "http://api.example.com/v2"
+      }
+    ],
+    "security": [
+      {
+        "api_key": []
+      }
+    ],
+    "tags": [
+      {
+        "name": "forecast",
+        "description": "Forecast lookups"
+      },
+      {
+        "name": "alerts"
+      },
+      {
+        "name": "stations"
+      }
+    ],
+    "paths": {
+      "/Current_Conditions/{city}": {
+        "get": {
+          "tags": [
+            "forecast"
+          ],
+          "summary": "Current conditions for a city",
+          "parameters": [
+            {
+              "name": "city",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "$ref": "#/components/parameters/Units"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Conditions"
+                  },
+                  "example": {
+                    "temperature_c": 21.5,
+                    "summary": "Sunny"
+                  }
+                }
+              }
+            },
+            "404": {
+              "$ref": "#/components/responses/NotFound"
+            }
+          },
+          "operationId": "getCurrentConditionsByCity"
+        }
+      },
+      "/forecast/": {
+        "get": {
+          "tags": [
+            "forecast"
+          ],
+          "summary": "Daily forecast",
+          "operationId": "getForecast",
+          "parameters": [
+            {
+              "name": "lat",
+              "in": "query",
+              "required": true,
+              "schema": {
+                "type": "number",
+                "maximum": 90,
+                "minimum": -90
+              }
+            },
+            {
+              "name": "lon",
+              "in": "query",
+              "required": true,
+              "schema": {
+                "type": "number",
+                "maximum": 180,
+                "minimum": -180
+              }
+            },
+            {
+              "name": "days",
+              "in": "query",
+              "schema": {
+                "type": "integer",
+                "maximum": 10,
+                "minimum": 1
+              }
+            },
+            {
+              "name": "fields",
+              "in": "query",
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "style": "form",
+              "explode": false
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/GetForecastResponse"
+                  }
+                }
+              }
+            },
+            "default": {
+              "$ref": "#/components/responses/Problem"
+            }
+          }
+        }
+      },
+      "/alerts/subscriptions": {
+        "post": {
+          "summary": "Subscribe to severe weather alerts",
+          "operationId": "createAlertSubscription",
+          "security": [
+            {
+              "oauth": [
+                "alerts:write"
+              ]
+            }
+          ],
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateAlertSubscriptionRequest"
+                }
+              }
+            },
+            "required": true
+          },
+          "responses": {
+            "201": {
+              "description": "Created",
+              "headers": {
+                "Location": {
+                  "description": "URL of the new subscription",
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "default": {
+              "$ref": "#/components/responses/Problem"
+            }
+          },
+          "tags": [
+            "alerts"
+          ]
+        }
+      },
+      "/stations/{stationId}/photo": {
+        "put": {
+          "tags": [
+            "stations"
+          ],
+          "operationId": "uploadStationPhoto",
+          "parameters": [
+            {
+              "name": "stationId",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "content": {
+              "multipart/form-data": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadStationPhotoRequest"
+                }
+              }
+            },
+            "required": true
+          },
+          "responses": {
+            "204": {
+              "description": "Uploaded"
+            },
+            "default": {
+              "$ref": "#/components/responses/Problem"
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "Conditions": {
+          "type": "object",
+          "required": [
+            "temperature_c"
+          ],
+          "properties": {
+            "temperature_c": {
+              "type": "number",
+              "format": "double"
+            },
+            "summary": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "observed_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "ForecastDay": {
+          "type": "object",
+          "properties": {
+            "date": {
+              "type": "string",
+              "format": "date"
+            },
+            "high": {
+              "type": "number"
+            },
+            "low": {
+              "type": "number"
+            },
+            "precipitationChance": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            }
+          }
+        },
+        "Error": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "integer"
+            },
+            "message": {
+              "type": "string"
+            }
+          }
+        },
+        "LegacyStation": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            }
+          }
+        },
+        "GetForecastResponse": {
+          "type": "object",
+          "properties": {
+            "days": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ForecastDay"
+              }
+            }
+          }
+        },
+        "CreateAlertSubscriptionRequest": {
+          "type": "object",
+          "required": [
+            "callbackUrl",
+            "area"
+          ],
+          "properties": {
+            "callbackUrl": {
+              "type": "string",
+              "format": "uri"
+            },
+            "area": {
+              "type": "string",
+              "examples": [
+                "CO"
+              ]
+            }
+          }
+        },
+        "UploadStationPhotoRequest": {
+          "type": "object",
+          "properties": {
+            "photo": {
+              "type": "string",
+              "format": "binary"
+            },
+            "caption": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "photo"
+          ]
+        },
+        "Problem": {
+          "type": "object",
+          "description": "Error body following RFC 9457 (Problem Details for HTTP APIs).",
+          "properties": {
+            "type": {
+              "type": "string",
+              "format": "uri-reference"
+            },
+            "title": {
+              "type": "string"
+            },
+            "status": {
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 599
+            },
+            "detail": {
+              "type": "string"
+            },
+            "instance": {
+              "type": "string",
+              "format": "uri-reference"
+            }
+          }
+        }
+      },
+      "parameters": {
+        "Units": {
+          "name": "units",
+          "in": "query",
+          "schema": {
+            "type": "string",
+            "enum": [
+              "metric",
+              "imperial"
+            ],
+            "default": "metric"
+          }
+        }
+      },
+      "responses": {
+        "NotFound": {
+          "description": "Location not found",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Error"
+              }
+            }
+          }
+        },
+        "Problem": {
+          "description": "Error (RFC 9457 Problem Details)",
+          "content": {
+            "application/problem+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Problem"
+              }
+            }
+          }
+        }
+      },
+      "securitySchemes": {
+        "api_key": {
+          "type": "apiKey",
+          "name": "X-API-Key",
+          "in": "header"
+        },
+        "oauth": {
+          "type": "oauth2",
+          "flows": {
+            "authorizationCode": {
+              "scopes": {
+                "alerts:write": "Manage weather alert subscriptions"
+              },
+              "authorizationUrl": "https://auth.example.com/authorize",
+              "tokenUrl": "https://auth.example.com/token"
+            }
+          }
+        }
+      }
+    }
+  },
+  "fixes": [
+    "no-inline-object-schemas|/components/schemas/CreateAlertSubscriptionRequest",
+    "no-inline-object-schemas|/components/schemas/GetForecastResponse",
+    "no-inline-object-schemas|/components/schemas/UploadStationPhotoRequest",
+    "operation-error-response|/paths/~1alerts~1subscriptions/post/responses/default",
+    "operation-error-response|/paths/~1forecast~1/get/responses/default",
+    "operation-error-response|/paths/~1stations~1{stationId}~1photo/put/responses/default",
+    "operation-id-camel-case|/paths/~1alerts~1subscriptions/post/operationId",
+    "operation-id-camel-case|/paths/~1forecast~1/get/operationId",
+    "operation-id-required|/paths/~1Current_Conditions~1{city}/get",
+    "operation-tag-defined|/tags",
+    "operation-tag-defined|/tags",
+    "operation-tags|/paths/~1alerts~1subscriptions/post",
+    "schema-name-pascal-case|/components/schemas/Conditions"
+  ],
+  "findings": [
+    "info-contact|warning|/info",
+    "info-description|warning|/info",
+    "info-license|info|/info",
+    "info-version-semver|warning|/info/version",
+    "no-unused-components|warning|/components/schemas/LegacyStation",
+    "operation-summary|warning|/paths/~1stations~1{stationId}~1photo/put",
+    "parameter-description|info|/components/parameters/Units",
+    "parameter-description|info|/paths/~1Current_Conditions~1{city}/get/parameters/0",
+    "parameter-description|info|/paths/~1forecast~1/get/parameters/0",
+    "parameter-description|info|/paths/~1forecast~1/get/parameters/1",
+    "parameter-description|info|/paths/~1forecast~1/get/parameters/2",
+    "parameter-description|info|/paths/~1forecast~1/get/parameters/3",
+    "parameter-description|info|/paths/~1stations~1{stationId}~1photo/put/parameters/0",
+    "path-kebab-case|warning|/paths/~1Current_Conditions~1{city}",
+    "path-no-trailing-slash|warning|/paths/~1forecast~1",
+    "property-camel-case|warning|/components/schemas/Conditions/properties/observed_at",
+    "property-camel-case|warning|/components/schemas/Conditions/properties/temperature_c",
+    "servers-https|warning|/servers/1/url"
+  ]
+}

@@ -1,0 +1,40 @@
+# --- Secrets: never commit ---------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.jks
+
+# --- Build output -----------------------------------------------------------
+build/
+out/
+.gradle/
+*.class
+go/speclint
+dist/
+
+# --- Python -----------------------------------------------------------------
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# --- Editors / OS -----------------------------------------------------------
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+
+# --- Local scratch ----------------------------------------------------------
+*.log
+.speclint-snapshot.tgz

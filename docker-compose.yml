@@ -1,0 +1,29 @@
+# Run all three implementations side by side:
+#   docker compose up --build
+#   Java   -> http://localhost:8081   (Spring Boot)
+#   Python -> http://localhost:8082   (FastAPI)
+#   Go     -> http://localhost:8083   (net/http)
+# Optional: export SPECLINT_API_TOKEN=... to require a bearer token on the API.
+services:
+  java:
+    build: {context: ., dockerfile: java/Dockerfile}
+    ports: ["127.0.0.1:8081:8080"]
+    environment: &env
+      SPECLINT_API_TOKEN: ${SPECLINT_API_TOKEN:-}
+      SPECLINT_MAX_BYTES: ${SPECLINT_MAX_BYTES:-2097152}
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: ["no-new-privileges:true"]
+  python:
+    build: {context: ., dockerfile: python/Dockerfile}
+    ports: ["127.0.0.1:8082:8080"]
+    environment: *env
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: ["no-new-privileges:true"]
+  go:
+    build: {context: ., dockerfile: go/Dockerfile}
+    ports: ["127.0.0.1:8083:8080"]
+    environment: *env
+    read_only: true
+    security_opt: ["no-new-privileges:true"]

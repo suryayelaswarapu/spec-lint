@@ -1,0 +1,10 @@
+# Secret scanning config (used by the pre-commit hook and CI).
+title = "spec-lint gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Documentation-only example hosts (RFC 2606) and test fixtures"
+regexes = ['''example\.com''']
+paths = ['''testdata/security/.*''']
