@@ -14,6 +14,7 @@ All notable changes to this project are documented here. The format follows
 - Swagger UI on `/docs.html` is pinned with Subresource Integrity, and the CSP allows only that versioned path.
 - `./gradlew :java:bootRun -Pport=…`, matching `:python:serve` and `:go:serve`.
 - Tests that keep the release version identical across all implementations.
+- Branch protection as code: `.github/rulesets/main.json` and `scripts/protect-main.sh`.
 
 ### Changed
 - Python validates against the vendored OAS schemas with `jsonschema` + `referencing` (pre-crawled registry) instead of `openapi-spec-validator`.
