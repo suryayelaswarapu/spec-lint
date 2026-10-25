@@ -55,16 +55,26 @@ jobs:
   go-os:
     name: Go on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
     strategy:
+      fail-fast: false  # report every OS, instead of cancelling the rest after the first failure
       matrix:
         os: [macos-latest, windows-latest]
     defaults:
-      run: {working-directory: go}
+      run: {working-directory: go, shell: bash}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with: {go-version-file: go/go.mod, cache-dependency-path: go/go.sum}
-      - run: go test ./...
+      - name: go test
+        run: |
+          set -o pipefail
+          go test -count=1 -timeout 5m ./... 2>&1 | tee go-test.log
+      - name: Report failing tests as annotations
+        if: failure()
+        run: |
+          grep -E -- '--- FAIL|panic:|_test\.go:[0-9]+:|^FAIL|timed out' go-test.log | head -30 |
+            while IFS= read -r line; do echo "::error title=go test (${{ runner.os }})::${line}"; done
 
   dogfood:
     name: Modernize the weather examples
