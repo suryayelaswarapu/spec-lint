@@ -20,7 +20,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("info.picocli:picocli:4.7.6")
     implementation("org.yaml:snakeyaml:2.3")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.22.4")
     implementation("com.networknt:json-schema-validator:1.5.6")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
