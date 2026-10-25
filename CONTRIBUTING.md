@@ -4,7 +4,7 @@ Thanks for helping! spec-lint has **three implementations of one specification**
 
 ## Setup
 
-Prerequisites: JDK 21+, Python 3.10+, Go 1.22+ and git.
+Prerequisites: JDK 21+, Python 3.10+, Go 1.24+ and git.
 
 ```bash
 ./gradlew check                    # everything: build, lint, type-check, tests, coverage >= 80%

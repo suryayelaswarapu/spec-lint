@@ -22,6 +22,7 @@ All notable changes to this project are documented here. The format follows
 - The Java WSDL import limits are constructor parameters rather than mutable static fields.
 
 ### Fixed
+- Go tests failed on macOS 15 runners (`dyld: missing LC_UUID load command`): binaries linked by Go 1.22 lack the UUID that macOS now requires. The minimum Go version is now 1.24, whose linker always writes it.
 - `no-unused-components` was quadratic. On a 1.3 MB contract, Python `modernize` went from 149 s to 10 s, Java from 8 s to 5 s, and Go from 4.6 s to 2.2 s.
 - A malformed `SPECLINT_MAX_BYTES` (for example `2MB`) crashed the Python server with a traceback and was silently ignored by Go. All three now refuse to start with a clear message.
 - The Python server buffered the request body before checking the bearer token. Unauthenticated requests are now rejected before the body is read.
