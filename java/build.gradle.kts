@@ -19,7 +19,7 @@ dependencies {
     implementation(platform(SpringBootPlugin.BOM_COORDINATES))
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("info.picocli:picocli:4.7.6")
-    implementation("org.yaml:snakeyaml:2.3")
+    implementation("org.yaml:snakeyaml:2.7")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
     implementation("com.networknt:json-schema-validator:1.5.6")
 
