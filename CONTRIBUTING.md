@@ -4,7 +4,7 @@ Thanks for helping! spec-lint has **three implementations of one specification**
 
 ## Setup
 
-Prerequisites: JDK 21+, Python 3.10+, Go 1.22+ and git.
+Prerequisites: JDK 21+, Python 3.10+, Go 1.24+ and git.
 
 ```bash
 ./gradlew check                    # everything: build, lint, type-check, tests, coverage >= 80%
@@ -49,6 +49,22 @@ Tests in each language fail if a copy drifts. The contract must stay lint-clean:
 - Use [Conventional Commits](https://www.conventionalcommits.org/): `feat(lint): add path-version-prefix rule`, `fix(wsdl): map nillable attributes`.
 - Keep pull requests focused, and fill in the PR checklist.
 - Every pull request must pass CI: `gradlew check`, the Python version matrix, Go on macOS and Windows, CodeQL, and gitleaks.
+
+## Branch protection
+
+`main` is protected by a repository ruleset that is kept as code in
+[`.github/rulesets/main.json`](.github/rulesets/main.json). It enforces:
+
+- every change goes through a pull request (squash or rebase merge, linear history)
+- these checks must pass on an up-to-date branch: `gradlew check`, gitleaks and CodeQL for Java, Python and Go
+- `main` cannot be force-pushed or deleted
+
+To change the rules, edit the JSON in a pull request. After it merges, a repository admin applies it:
+
+```bash
+gh auth login                # once; needs admin rights on the repository
+scripts/protect-main.sh      # creates the ruleset, or updates it if it already exists
+```
 
 ## Code of conduct
 

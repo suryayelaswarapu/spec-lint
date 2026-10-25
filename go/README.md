@@ -1,6 +1,6 @@
 # spec-lint (Go)
 
-The Go implementation of [spec-lint](../README.md). It requires Go 1.22+ and has two dependencies (`gopkg.in/yaml.v3` and `santhosh-tekuri/jsonschema/v6`).
+The Go implementation of [spec-lint](../README.md). It requires Go 1.24+ and has two dependencies (`gopkg.in/yaml.v3` and `santhosh-tekuri/jsonschema/v6`).
 
 ```bash
 go build -o speclint ./cmd/speclint

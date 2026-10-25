@@ -88,7 +88,7 @@ Today's tools each solve only part of the problem:
 |---|---|---|---|
 | **JDK** | **21** (exactly 21 for the build, see note) | Gradle and the Java implementation | `java -version` |
 | **Python** | 3.10 or newer | Python implementation | `python3 --version` |
-| **Go** | 1.22 or newer | Go implementation | `go version` |
+| **Go** | 1.24 or newer | Go implementation | `go version` |
 | Git | any | cloning | `git --version` |
 | Docker | optional | `docker compose` | `docker --version` |
 
@@ -97,8 +97,8 @@ You don't need to install Gradle. The `./gradlew` wrapper downloads Gradle 8.14.
 > **Java version note:** the build needs **JDK 21**. Gradle 8.14 can't run on newer JDKs; on Java 26 it fails with *"Unsupported class file major version 70"*. You can keep newer JDKs installed, but point `JAVA_HOME` at 21 when you build.
 >
 > ```bash
-> # macOS (Homebrew)
-> brew install openjdk@21
+> # macOS (Homebrew): the Temurin cask installs where macOS's java_home can find it
+> brew install --cask temurin@21
 > export JAVA_HOME=$(/usr/libexec/java_home -v 21)   # add to ~/.zshrc to make it permanent
 >
 > # Linux (Debian/Ubuntu)
@@ -138,9 +138,14 @@ You'll see the OpenAPI 3.1 result, the fixes that were applied, the findings and
 ### 4. Try the CLI
 
 ```bash
-./gradlew :go:goBuild
-go/build/speclint modernize testdata/weather/weather-service.wsdl -o /tmp/weather.yaml --report /tmp/report.md
+# With Java (no Go needed)
+./gradlew :java:installDist
+java/build/install/speclint/bin/speclint modernize testdata/weather/weather-service.wsdl \
+  -o /tmp/weather.yaml --report /tmp/report.md
 cat /tmp/report.md
+
+# Or with Go
+./gradlew :go:goBuild && go/build/speclint modernize testdata/weather/weather-service.wsdl -o /tmp/weather.yaml
 ```
 
 ---
@@ -280,7 +285,7 @@ python3 -m venv .venv && source .venv/bin/activate
 pip install -e python                 # add "[server]" for `speclint serve`
 speclint --help
 
-# Go 1.22+
+# Go 1.24+
 cd go && go build -o speclint ./cmd/speclint && ./speclint --help
 
 # Java 21 (the CLI entry point is Main.java)
@@ -491,7 +496,7 @@ spec-lint/
 ├── gradle/                 wrapper + daemon JVM pin (Java 21)
 ├── python/                 Python 3.10+  (pytest, ruff, mypy --strict); build.gradle.kts wraps a venv
 ├── java/                   Java 21       (Spring Boot 3, picocli, JUnit 5, AssertJ, JaCoCo)
-├── go/                     Go 1.22+      (standard library + yaml.v3 + jsonschema)
+├── go/                     Go 1.24+      (standard library + yaml.v3 + jsonschema)
 ├── web/                    browser UI shared by all three servers (no framework, no inline script)
 ├── docs/                   rules.md, wsdl-mapping.md, api/openapi.yaml (REST contract), images/
 ├── schemas/openapi/        official OpenAPI 3.0/3.1 JSON Schemas (vendored, Apache-2.0)
@@ -560,7 +565,7 @@ Dependabot keeps the Gradle, pip, Go module and GitHub Actions dependencies up t
 | `401 Unauthorized` from the API | `SPECLINT_API_TOKEN` is set on the server | Send `Authorization: Bearer <token>`, or paste the token into the web UI's token field |
 | `413 Payload too large` | The request is bigger than `SPECLINT_MAX_BYTES` | Raise the limit, or use the CLI (default limit 10 MiB, `--max-size` to change) |
 | `:python:install` fails or uses an old Python | `python3` on your PATH is older than 3.10 | `./gradlew :python:check -Ppython=python3.12`, or delete `python/.venv` and retry |
-| `go: command not found` during `./gradlew check` | Go isn't installed or not on PATH | Install Go 1.22+, or build a single language with `./gradlew :java:check` |
+| `go: command not found` during `./gradlew check` | Go isn't installed or not on PATH | Install Go 1.24+, or build a single language with `./gradlew :java:check` |
 | Swagger UI page at `/docs.html` is blank | The browser can't reach unpkg.com (offline or corporate proxy) | The API still works. Use [`docs/api/openapi.yaml`](docs/api/openapi.yaml) directly. |
 | `WSDL ... remote import not fetched` note | The WSDL imports XSD over HTTP; spec-lint never fetches URLs | Download the XSD next to the WSDL, point `schemaLocation` at the local file and use the CLI (the API never reads local files) |
 
@@ -574,7 +579,7 @@ Contributions are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) explains:
 - how to keep the three implementations in sync
 - the commit style
 
-Run `pre-commit install` once so that gitleaks, ruff and gofmt run before every commit.
+Run `pip install pre-commit && pre-commit install` once so that gitleaks, ruff and basic file checks (YAML/JSON syntax, private keys, merge conflicts) run before every commit.
 
 ### Roadmap
 
