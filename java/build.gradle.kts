@@ -4,7 +4,7 @@ plugins {
     java
     application
     jacoco
-    id("org.springframework.boot") version "3.3.5"
+    id("org.springframework.boot") version "4.1.2"
 }
 
 description = "spec-lint: Java implementation"
