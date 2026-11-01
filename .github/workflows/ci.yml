@@ -22,7 +22,7 @@ jobs:
         with: {distribution: temurin, java-version: '21'}
       - uses: actions/setup-python@v5
         with: {python-version: '3.12'}
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with: {go-version-file: go/go.mod, cache-dependency-path: go/go.sum}
       - uses: gradle/actions/setup-gradle@v4
       - name: Build, lint, test and enforce coverage (>= 80%)
@@ -62,7 +62,7 @@ jobs:
       run: {working-directory: go}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with: {go-version-file: go/go.mod, cache-dependency-path: go/go.sum}
       - run: go test ./...
 
@@ -72,7 +72,7 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with: {go-version-file: go/go.mod, cache-dependency-path: go/go.sum}
       - name: Build CLI
         working-directory: go
